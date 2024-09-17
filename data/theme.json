@@ -1,0 +1,87 @@
+{
+	"window": {
+		"background-color": [30, 30, 30]
+	}, 
+	"toolbar": {
+		"height": "60px", 
+		">": {
+			"button": {
+				"width": "80px"
+			}, 
+			"option": {
+				"min-width": "150px", 
+				"height": "40px", 
+				"padding": "10px", 
+				"color": [255, 255, 255], 
+				"font-size": "25px", 
+				"background-color": [0, 0, 0, 150], 
+				"border-color": [255, 255, 255], 
+				"#designButton": {
+					":hover": {
+						"background-color": [150, 50, 50, 80]
+					}
+				}, 
+				"#pageButton": {
+					":hover": {
+						"background-color": [50, 150, 50, 80]
+					}
+				}, 
+				"#renderButton": {
+					":hover": {
+						"background-color": [50, 50, 150, 80]
+					}
+				}, 
+				"#settingsButton": {
+					":hover": {
+						"background-color": [150, 50, 50, 80]
+					}
+				}, 
+				"#infoButton": {
+					":hover": {
+						"background-color": [50, 150, 50, 80]
+					}
+				}
+			}
+		}
+	}, 
+	"aside": {
+		"width": "25vw", 
+		"padding": "1vw", 
+		"background-color": [50, 50, 50], 
+		">": {
+			"*": {
+				"border-color": [255, 255, 255]
+			}, 
+			"tinyView": {
+				"min-height": "5vw", 
+				"max-height": "25vw", 
+				"background-color": [0, 0, 0]
+			}, 
+			"layerList": {
+				"background-color": [40, 40, 40], 
+				">": {
+					"layer": {
+						"height": "40px", 
+						"color": [255, 255, 255], 
+						"font-size": "25px", 
+						"background-color": [20, 20, 20]
+					}
+				}
+			}, 
+			"layerButtonBar": {
+				"height": "40px", 
+				"color": [255, 255, 255], 
+				"font-size": "20px", 
+				"background-color": [20, 20, 20]
+			}
+		}
+	}, 
+	"workspace": {
+		"background-color": [0, 0, 0, 0], 
+		">": {
+			"warning": {
+				"font-size": "25px"
+			}
+		}
+	}
+}
