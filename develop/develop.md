@@ -1,7 +1,20 @@
 ## 進度
 
+### types
+
+> 截自：https://wadehuanglearning.blogspot.com/2019/05/commit-commit-commit-why-what-commit.html  
+> feat: 新增/修改功能 (feature)。  
+> fix: 修補 bug (bug fix)。  
+> docs: 文件 (documentation)。  
+> style: 格式 (不影響程式碼運行的變動 white-space, formatting, missing semi colons, etc)。  
+> refactor: 重構 (既不是新增功能，也不是修補 bug 的程式碼變動)。  
+> perf: 改善效能 (A code change that improves performance)。  
+> test: 增加測試 (when adding missing tests)。  
+> chore: 建構程序或輔助工具的變動 (maintain)。  
+> revert: 撤銷回覆先前的 commit 例如：revert: type(scope): subject (回覆版本：xxxx)。
+
 * 2024/09/17
-	1. 完成切板(包括工具列按鈕、選單和側邊攔的捲動與布局)
+	1. feat: 完成切板(包括工具列按鈕、選單和側邊攔的捲動與布局)
 
 ## 待辦
 
