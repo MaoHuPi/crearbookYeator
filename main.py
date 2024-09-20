@@ -319,9 +319,11 @@ def renderToolbar():
 aside = createSurface(0, 0)
 asideUpdateLastFrameFlag = False
 layerListScrollY = 0
+dragScrollbarThumbFlag = False
+draggingLayer = False
 def renderAside():
-    global window, aside, asideUpdateLastFrameFlag, asideUpdateToolbarFlag, asideUpdateWorkspaceFlag
-    global layerListScrollY
+    global window, aside, asideUpdateLastFrameFlag, asideUpdateToolbarFlag, asideUpdateWorkspaceFlag, mClickProcessed
+    global layerListScrollY, dragScrollbarThumbFlag, draggingLayer
     asideUpdateToolbarFlag = False
     asideUpdateWorkspaceFlag = False
     asideRect = pg.Rect(100*vw - parseLength(theme['aside']['width']), parseLength(theme['toolbar']['height']), parseLength(theme['aside']['width']), 100*vh - parseLength(theme['toolbar']['height']))
@@ -371,17 +373,50 @@ def renderAside():
             pg.draw.rect(aside, theme['aside']['>']['layerList']['background-color'], layerListRect)
             layerHeight = parseLength(theme['aside']['>']['layerList']['>']['layer']['height'])
             layerListScrollY += -mWheelY*2
-            layerListScrollY = max(min(layerListScrollY, layerHeight*len(project['pages'][currentPage]) - layerListRect.height), 0)
-            print(layerListScrollY)
+            maxLayerListScrollY = layerHeight*len(project['pages'][currentPage]) - layerListRect.height
+            layerListScrollY = max(min(layerListScrollY, maxLayerListScrollY), 0)
+
+            scrollbarWidth = parseLength(theme['*']['scrollbar-width'])
+            scrollbarRect = pg.Rect(layerListRect.right - scrollbarWidth, layerListRect.top, scrollbarWidth, layerListRect.height)
+            pg.draw.rect(aside, theme['*']['scrollbar-color'][1], scrollbarRect)
+            scrollbarThumbHeight = scrollbarRect.height*0.05
+            scrollbarThumbRect = pg.Rect(scrollbarRect.left, scrollbarRect.top + (scrollbarRect.height - scrollbarThumbHeight)*(layerListScrollY/maxLayerListScrollY), scrollbarRect.width, scrollbarThumbHeight)
+            if maxLayerListScrollY > 0:
+                pg.draw.rect(aside, theme['*']['scrollbar-color'][0], scrollbarThumbRect)
+                if isHover(mx, my, scrollbarThumbRect) and mClick and not mClickProcessed:
+                    dragScrollbarThumbFlag = True
+                    mClickProcessed = True
+                elif mClick and mClickProcessed and dragScrollbarThumbFlag:
+                    layerListScrollY = (my - scrollbarRect.top) / scrollbarRect.height * maxLayerListScrollY
+                    layerListScrollY = max(min(layerListScrollY, maxLayerListScrollY), 0)
+                elif not mClick:
+                    dragScrollbarThumbFlag = False
+
             startIndex = math.floor(layerListScrollY/layerHeight)
             endIndex = startIndex + math.ceil(layerListRect.height/layerHeight) + 1
             for [relativeLayerIndex, layer] in enumerate(project['pages'][currentPage][startIndex:endIndex]):
-                layerRectInLayer = pg.Rect(0, -(layerListScrollY%layerHeight) + layerHeight*relativeLayerIndex, layerListRect.width, layerHeight)
+                layerRectInLayer = pg.Rect(0, -(layerListScrollY%layerHeight) + layerHeight*relativeLayerIndex, layerListRect.width - scrollbarRect.width, layerHeight)
                 layerRectInWindow = pg.Rect(layerListRect.left, layerListRect.top - layerListScrollY%layerHeight + layerHeight*relativeLayerIndex, layerRectInLayer.width, layerRectInLayer.height)
                 pg.draw.rect(layerList, theme['aside']['>']['layerList']['>']['layer']['background-color'], layerRectInLayer)
                 if relativeLayerIndex > 0 : pg.draw.line(layerList, theme['aside']['>']['*']['border-color'], layerRectInLayer.topleft, layerRectInLayer.topright)
                 text = renderText(layer['name'], parseLength(theme['aside']['>']['layerList']['>']['layer']['font-size']), theme['aside']['>']['layerList']['>']['layer']['color'])
                 layerList.blit(text, [layerRectInLayer.left, layerRectInLayer.top + (layerHeight - text.get_size()[1])/2])
+
+                if isHover(mx, my, layerRectInWindow) and mClick and not mClickProcessed:
+                    draggingLayer = layer
+                    mClickProcessed = True
+                elif mClick and mClickProcessed and draggingLayer == layer:
+                    targetRelativeLayerIndex = math.floor((my - layerListRect.top + (layerListScrollY%layerHeight) - layerHeight/2) / layerHeight + 0.5)
+                    currentIndex = project['pages'][currentPage].index(layer)
+                    targetIndex = max(min(currentIndex - relativeLayerIndex + targetRelativeLayerIndex, len(project['pages'][currentPage])-1), 0)
+                    if targetIndex > currentIndex:
+                        (project['pages'][currentPage][currentIndex : targetIndex-1])
+                        project['pages'][currentPage][currentIndex : targetIndex] = project['pages'][currentPage][currentIndex+1 : targetIndex+1]
+                    elif targetIndex < currentIndex:
+                        project['pages'][currentPage][targetIndex+1 : currentIndex+1] = project['pages'][currentPage][targetIndex : currentIndex]
+                    if targetIndex != currentIndex: project['pages'][currentPage][targetIndex] = layer
+                elif not mClick:
+                    draggingLayer = False
             aside.blit(layerList, layerListRect.topleft)
 
 workspace = createSurface(0, 0)

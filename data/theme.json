@@ -1,4 +1,8 @@
 {
+	"*": {
+		"scrollbar-width": "5px", 
+		"scrollbar-color": [[255, 255, 255], [0, 0, 0]]
+	}, 
 	"window": {
 		"background-color": [30, 30, 30]
 	}, 
