@@ -1,6 +1,4 @@
 import pygame as pg
-import cv2
-import numpy as np
 import json
 import asyncio, aiofiles
 import math
@@ -13,7 +11,7 @@ BACKGROUND_COLOR = (0, 0, 0)
 [mx, my] = [-1, -1]; [mLClick, mLClickProcessed] = [False, True]; [mMClick, mMClickProcessed] = [False, True]; [mRClick, mRClickProcessed] = [False, True]; [mDBClick, mDBClickProcessed] = [False, True]
 lastClickTime = 0; [lastClickX, lastClickY] = [-1, -1]
 keyboardInput = ''
-[mWheelX, mWheelY] = [0, 0]
+[mWheelX, mWheelY, mWheelZ] = [0, 0, 0]
 totalTask = 0; loadingProcess = 0
 
 def generateId():
@@ -70,83 +68,83 @@ def newProject():
         'settings': {
             'pageSize': [5882, 4193], 
             'accessDirectory': './oriAccess/20240911_個人照/', 
-            'proxiesImageQuality': 50, 
+            'proxiesImageQuality': 10, 
             'pageShow': 'all'
         }, 
         'pages': [
             [
-                {
-                    'id': generateId(), 
-                    'type': 'full', 
-                    'name': 'front1', 
-                    'imagePath': 'p_29_1.JPG'
-                }, 
-                {
-                    'id': generateId(), 
-                    'type': 'full', 
-                    'name': 'front2', 
-                    'imagePath': 'p_29_1.JPG'
-                }, 
-                {
-                    'id': generateId(), 
-                    'type': 'full', 
-                    'name': 'front3', 
-                    'imagePath': 'p_29_1.JPG'
-                }, 
-                {
-                    'id': generateId(), 
-                    'type': 'full', 
-                    'name': 'front4', 
-                    'imagePath': 'p_29_1.JPG'
-                }, 
-                {
-                    'id': generateId(), 
-                    'type': 'full', 
-                    'name': 'front5', 
-                    'imagePath': 'p_29_1.JPG'
-                }, 
-                {
-                    'id': generateId(), 
-                    'type': 'full', 
-                    'name': 'front6', 
-                    'imagePath': 'p_29_1.JPG'
-                }, 
-                {
-                    'id': generateId(), 
-                    'type': 'full', 
-                    'name': 'front7', 
-                    'imagePath': 'p_29_1.JPG'
-                }, 
-                {
-                    'id': generateId(), 
-                    'type': 'full', 
-                    'name': 'front8', 
-                    'imagePath': 'p_29_1.JPG'
-                }, 
-                {
-                    'id': generateId(), 
-                    'type': 'full', 
-                    'name': 'front9', 
-                    'imagePath': 'p_29_1.JPG'
-                }, 
-                {
-                    'id': generateId(), 
-                    'type': 'full', 
-                    'name': 'front10', 
-                    'imagePath': 'p_29_1.JPG'
-                }, 
-                {
-                    'id': generateId(), 
-                    'type': 'full', 
-                    'name': 'front11', 
-                    'imagePath': 'p_29_1.JPG'
-                }, 
-                {
-                    'id': generateId(), 
-                    'type': 'full', 
-                    'name': 'front12', 
-                    'imagePath': 'p_29_1.JPG'
-                }, 
+                # {
+                #     'id': generateId(), 
+                #     'type': 'full', 
+                #     'name': 'front1', 
+                #     'imagePath': 'p_29_1.JPG'
+                # }, 
+                # {
+                #     'id': generateId(), 
+                #     'type': 'full', 
+                #     'name': 'front2', 
+                #     'imagePath': 'p_29_1.JPG'
+                # }, 
+                # {
+                #     'id': generateId(), 
+                #     'type': 'full', 
+                #     'name': 'front3', 
+                #     'imagePath': 'p_29_1.JPG'
+                # }, 
+                # {
+                #     'id': generateId(), 
+                #     'type': 'full', 
+                #     'name': 'front4', 
+                #     'imagePath': 'p_29_1.JPG'
+                # }, 
+                # {
+                #     'id': generateId(), 
+                #     'type': 'full', 
+                #     'name': 'front5', 
+                #     'imagePath': 'p_29_1.JPG'
+                # }, 
+                # {
+                #     'id': generateId(), 
+                #     'type': 'full', 
+                #     'name': 'front6', 
+                #     'imagePath': 'p_29_1.JPG'
+                # }, 
+                # {
+                #     'id': generateId(), 
+                #     'type': 'full', 
+                #     'name': 'front7', 
+                #     'imagePath': 'p_29_1.JPG'
+                # }, 
+                # {
+                #     'id': generateId(), 
+                #     'type': 'full', 
+                #     'name': 'front8', 
+                #     'imagePath': 'p_29_1.JPG'
+                # }, 
+                # {
+                #     'id': generateId(), 
+                #     'type': 'full', 
+                #     'name': 'front9', 
+                #     'imagePath': 'p_29_1.JPG'
+                # }, 
+                # {
+                #     'id': generateId(), 
+                #     'type': 'full', 
+                #     'name': 'front10', 
+                #     'imagePath': 'p_29_1.JPG'
+                # }, 
+                # {
+                #     'id': generateId(), 
+                #     'type': 'full', 
+                #     'name': 'front11', 
+                #     'imagePath': 'p_29_1.JPG'
+                # }, 
+                # {
+                #     'id': generateId(), 
+                #     'type': 'full', 
+                #     'name': 'front12', 
+                #     'imagePath': 'p_29_1.JPG'
+                # }, 
                 {
                     'id': generateId(), 
                     'type': 'full', 
@@ -158,6 +156,8 @@ def newProject():
     }
 
 # render function
+# deltaTime = 0
+
 def createSurface(w, h):
     surface = pg.Surface([w, h]).convert_alpha()
     surface.fill([0, 0, 0, 0])
@@ -176,16 +176,44 @@ def renderText(content, size, color):
         textCache[id] = text
         return text
 imageCache = {}
-def renderImage(path, quality):
+def getImage(path, quality):
     path = str(path)
     id = path + '_q' + str(quality)
     if id in imageCache:
         return imageCache[id]
     else:
         image = pg.image.load(path)
-        pg.transform.scale(image, [round(image.get_width() * quality/100), round(image.get_height() * quality/100)])
+        image = pg.transform.scale_by(image, quality/100)
         imageCache[id] = image
         return image
+def renderImage(image:pg.Surface, imageRect:pg.Rect, canvasRect:pg.Rect):
+    if imageRect.width*imageRect.height > canvasRect.width*canvasRect.height:
+        relativeLeft = canvasRect.left-imageRect.left
+        relativeTop = canvasRect.top-imageRect.top
+        relativeWidth = canvasRect.width
+        relativeHeight = canvasRect.height
+        horizontalScale = 1/imageRect.width*image.get_width()
+        verticalScale = 1/imageRect.height*image.get_height()
+        relativeLeft *= horizontalScale; relativeTop *= verticalScale
+        relativeWidth *= horizontalScale; relativeHeight *= verticalScale
+
+        cropLeft = math.floor(relativeLeft)
+        cropTop = math.floor(relativeTop)
+        cropWidth = round(relativeWidth)
+        cropHeight = round(relativeHeight)
+        croppedImage = pg.Surface([cropWidth, cropHeight]).convert_alpha()
+        croppedImage.fill([0, 0, 0, 0])
+        croppedImage.blit(image, [0, 0], [cropLeft, cropTop, cropWidth, cropHeight])
+        croppedImage = pg.transform.scale(croppedImage, [canvasRect.width, canvasRect.height])
+
+        return croppedImage
+    else:
+        image = pg.transform.scale(image, [imageRect.width, imageRect.height])
+        croppedImage = pg.Surface([canvasRect.width, canvasRect.height]).convert_alpha()
+        croppedImage.fill([0, 0, 0, 0])
+        croppedImage.blit(image, [imageRect.left - canvasRect.left, imageRect.top - canvasRect.top])
+        return croppedImage
+
 
 def isHover(x, y, rect:pg.Rect):
     return x >= rect.left and x < rect.right and y >= rect.top and y < rect.bottom
@@ -437,7 +465,7 @@ def renderAside():
             layerList = createSurface(layerListRect.width, layerListRect.height)
             pg.draw.rect(aside, theme['aside']['>']['layerList']['background-color'], layerListRect)
             layerHeight = parseLength(theme['aside']['>']['layerList']['>']['layer']['height'])
-            layerListScrollY += -mWheelY*2
+            layerListScrollY += -mWheelY * 500*deltaTime
             maxLayerListScrollY = layerHeight*len(project['pages'][currentPage]) - layerListRect.height
             layerListScrollY = max(min(layerListScrollY, maxLayerListScrollY), 0)
 
@@ -513,10 +541,10 @@ workspace = createSurface(0, 0)
 workspaceUpdateLastFrameFlag = False
 workspaceTranslateX = 0
 workspaceTranslateY = 0
-workspaceScale = 1
+workspaceBasicScale = 1; workspaceScale = 1
 def renderWorkspace():
     global window, workspace, workspaceUpdateLastFrameFlag, workspaceUpdateToolbarFlag, workspaceUpdateAsideFlag
-    global workspaceTranslateX, workspaceTranslateY, workspaceScale
+    global workspaceTranslateX, workspaceTranslateY, workspaceBasicScale, workspaceScale
     workspaceUpdateToolbarFlag = False
     workspaceUpdateAsideFlag = False
     workspaceRect = pg.Rect(0, parseLength(theme['toolbar']['height']), 100*vw - parseLength(theme['aside']['width']), 100*vh - parseLength(theme['toolbar']['height']))
@@ -535,12 +563,33 @@ def renderWorkspace():
             warningTextSize = warningText.get_size()
             workspace.blit(warningText, [workspaceRect.left + (workspaceRect.width - warningTextSize[0])/2, workspaceRect.top + (workspaceRect.height - warningTextSize[1])/2])
         else:
-            workspaceTranslateX += mWheelX*2
-            workspaceTranslateY += mWheelY*2
-            for layer in project['pages'][currentPage]:
-                image = renderImage(project['settings']['accessDirectory'] + layer['imagePath'], project['settings']['proxiesImageQuality'])
-                workspace.blit(image, [workspaceTranslateX, workspaceTranslateY])
+            # set basic scale value
+            if project['settings']['pageSize'][1]/project['settings']['pageSize'][0] > workspaceRect.height/workspaceRect.width:
+                workspaceBasicScale = workspaceRect.height/project['settings']['pageSize'][1]
+            else:
+                workspaceBasicScale = workspaceRect.width/project['settings']['pageSize'][0]
 
+            # update translate variable value
+            workspaceTranslateX += -mWheelX * 1500*deltaTime
+            workspaceTranslateY += mWheelY * 1500*deltaTime
+            scaleStep = 1 + 10*deltaTime
+            lastWorkspaceScale = workspaceScale
+            if mWheelZ != 0:
+                workspaceScale *= (scaleStep if mWheelZ == 1 else 1/scaleStep)
+                workspaceScale = min(max(workspaceScale, 0.1), 10)
+            workspaceTranslateX += mx*(1/workspaceScale - 1/lastWorkspaceScale)/workspaceBasicScale
+            workspaceTranslateY += my*(1/workspaceScale - 1/lastWorkspaceScale)/workspaceBasicScale
+
+            # render layer
+            for layer in project['pages'][currentPage]:
+                image = getImage(project['settings']['accessDirectory'] + layer['imagePath'], project['settings']['proxiesImageQuality'])
+                
+                imageRect = pg.Rect(workspaceTranslateX*workspaceBasicScale*workspaceScale, workspaceTranslateY*workspaceBasicScale*workspaceScale, project['settings']['pageSize'][0]*workspaceBasicScale*workspaceScale, project['settings']['pageSize'][1]*workspaceBasicScale*workspaceScale)
+                image = renderImage(image, imageRect, workspaceRect)
+
+                workspace.blit(image, [workspaceRect.left, workspaceRect.top])
+
+deltaTime = 0
 editorState = 'loading'
 async def main():
     async def init():
@@ -551,14 +600,20 @@ async def main():
         renderToolbar()
     
     async def renderLoop():
-        global vw, vh, mx, my, mLClick, mLClickProcessed, mMClick, mMClickProcessed, mRClick, mRClickProcessed, mDBClick, mDBClickProcessed, lastClickTime, lastClickX, lastClickY, mWheelX, mWheelY, keyboardInput
+        global vw, vh, mx, my, mLClick, mLClickProcessed, mMClick, mMClickProcessed, mRClick, mRClickProcessed, mDBClick, mDBClickProcessed, lastClickTime, lastClickX, lastClickY, mWheelX, mWheelY, mWheelZ, keyboardInput
         global layerRenameFlag
         global editorState, loadingProcess, totalTask
         global theme, project
         global window, toolbar, aside, workspace
+        global deltaTime
         
         run = True
+        lastFrameTime = time.time()
         while run:
+            currentTime = time.time()
+            deltaTime = currentTime - lastFrameTime
+            lastFrameTime = currentTime
+
             # init new frame
             windowInfo = pg.display.Info()
             window.fill(BACKGROUND_COLOR)
@@ -596,7 +651,7 @@ async def main():
             pg.display.flip()
             
             # event listener
-            [mWheelX, mWheelY] = [0, 0]
+            [mWheelX, mWheelY, mWheelZ] = [0, 0, 0]
             keyboardInput = ''
             for event in pg.event.get(): 
                 if event.type == pg.QUIT:
@@ -626,7 +681,6 @@ async def main():
                         layerRenameFlag = False
                         mLClick = True
                         mLClickProcessed = False
-                        currentTime = time.time()
                         if currentTime - lastClickTime < 0.3 and mx == lastClickX and my == lastClickY:
                             mDBClick = True
                             mDBClickProcessed = False
@@ -650,9 +704,10 @@ async def main():
                     elif event.button == 3:
                         mRClick = False
                 elif event.type == pg.MOUSEWHEEL:
-                    [mWheelX, mWheelY] = [event.x, event.y]
-                    print(event.x, event.y)
-
+                    if pg.key.get_mods() & pg.KMOD_CTRL:
+                        mWheelZ = event.y
+                    else:
+                        [mWheelX, mWheelY] = [event.x, event.y]
             await asyncio.sleep(0.001)
     
     initTask = asyncio.create_task(init())

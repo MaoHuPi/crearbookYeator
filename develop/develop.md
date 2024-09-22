@@ -26,16 +26,17 @@
 	3. feat: layer id (用以辨識實體不同但名稱相同的 layer)
 	4. feat: layer rename (double click a layer)
 	5. feat: layer icon (full or clip，改用 \[f\] 和 \[c\] 之前綴代替)
+	6. feat: full layer display (on workspace) 
+	7. feat: workspace move (wheel)
+	8. feat: workspace scale
 
 ## 待辦
 
 - [ ] 直長型視窗的布局(theme 新增不同部局並支援各 component 的 top/bottom、left/right)
 - [ ] tiny view display
 
-- [ ] workspace page display
 - [ ] workspace move (drag)
-- [ ] workspace scale
-- [ ] layer display (on workspace)
+- [ ] clip layer display (on workspace)
 - [ ] clipping layer control points and edit method
 
 - [ ] file read/write
