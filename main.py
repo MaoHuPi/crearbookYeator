@@ -4,13 +4,32 @@ import numpy as np
 import json
 import asyncio, aiofiles
 import math
+import random
+import time
 
 BASIC_PATH = ''
 BACKGROUND_COLOR = (0, 0, 0)
 [vw, vh] = [1200, 800]; px = 1
-[mx, my] = [-1, -1]; mClick = False; mClickProcessed = True
+[mx, my] = [-1, -1]; [mLClick, mLClickProcessed] = [False, True]; [mMClick, mMClickProcessed] = [False, True]; [mRClick, mRClickProcessed] = [False, True]; [mDBClick, mDBClickProcessed] = [False, True]
+lastClickTime = 0; [lastClickX, lastClickY] = [-1, -1]
+keyboardInput = ''
 [mWheelX, mWheelY] = [0, 0]
 totalTask = 0; loadingProcess = 0
+
+def generateId():
+    text = '0123456789abcdefghijklmnopqrstuvwxyz'
+    return ''.join(random.choices(text, k=10))
+def idList(page):
+    return list(map(lambda layer: layer['id'], page))
+def parseInput(text):
+    text
+    textSegmentList = list(text)
+    while '\b' in textSegmentList:
+        removeIndex = textSegmentList.index('\b')
+        textSegmentList.pop(removeIndex)
+        if removeIndex-1 >= 0:
+            textSegmentList.pop(removeIndex-1)
+    return ''.join(textSegmentList)
 
 window = pg.display.set_mode([vw, vh], pg.RESIZABLE)
 pg.display.set_caption('Crearbook Yeator')
@@ -57,66 +76,79 @@ def newProject():
         'pages': [
             [
                 {
+                    'id': generateId(), 
                     'type': 'full', 
                     'name': 'front1', 
                     'imagePath': 'p_29_1.JPG'
                 }, 
                 {
+                    'id': generateId(), 
                     'type': 'full', 
                     'name': 'front2', 
                     'imagePath': 'p_29_1.JPG'
                 }, 
                 {
+                    'id': generateId(), 
                     'type': 'full', 
                     'name': 'front3', 
                     'imagePath': 'p_29_1.JPG'
                 }, 
                 {
+                    'id': generateId(), 
                     'type': 'full', 
                     'name': 'front4', 
                     'imagePath': 'p_29_1.JPG'
                 }, 
                 {
+                    'id': generateId(), 
                     'type': 'full', 
                     'name': 'front5', 
                     'imagePath': 'p_29_1.JPG'
                 }, 
                 {
+                    'id': generateId(), 
                     'type': 'full', 
                     'name': 'front6', 
                     'imagePath': 'p_29_1.JPG'
                 }, 
                 {
+                    'id': generateId(), 
                     'type': 'full', 
                     'name': 'front7', 
                     'imagePath': 'p_29_1.JPG'
                 }, 
                 {
+                    'id': generateId(), 
                     'type': 'full', 
                     'name': 'front8', 
                     'imagePath': 'p_29_1.JPG'
                 }, 
                 {
+                    'id': generateId(), 
                     'type': 'full', 
                     'name': 'front9', 
                     'imagePath': 'p_29_1.JPG'
                 }, 
                 {
+                    'id': generateId(), 
                     'type': 'full', 
                     'name': 'front10', 
                     'imagePath': 'p_29_1.JPG'
                 }, 
                 {
+                    'id': generateId(), 
                     'type': 'full', 
                     'name': 'front11', 
                     'imagePath': 'p_29_1.JPG'
                 }, 
                 {
+                    'id': generateId(), 
                     'type': 'full', 
                     'name': 'front12', 
                     'imagePath': 'p_29_1.JPG'
                 }, 
                 {
+                    'id': generateId(), 
                     'type': 'full', 
                     'name': 'background', 
                     'imagePath': 'p_29_1.JPG'
@@ -143,6 +175,18 @@ def renderText(content, size, color):
         text = font.render(content, False, color)
         textCache[id] = text
         return text
+imageCache = {}
+def renderImage(path, quality):
+    path = str(path)
+    id = path + '_q' + str(quality)
+    if id in imageCache:
+        return imageCache[id]
+    else:
+        image = pg.image.load(path)
+        pg.transform.scale(image, [round(image.get_width() * quality/100), round(image.get_height() * quality/100)])
+        imageCache[id] = image
+        return image
+
 def isHover(x, y, rect:pg.Rect):
     return x >= rect.left and x < rect.right and y >= rect.top and y < rect.bottom
 
@@ -231,7 +275,7 @@ workspaceUpdateAsideFlag = False
 toolbarMenuOpening = False
 toolbarUpdateLastFrameFlag = False
 def renderToolbar():
-    global window, toolbar, icon, toolbarMenuOpening, mClickProcessed, toolbarUpdateLastFrameFlag, toolbarUpdateAsideFlag, toolbarUpdateWorkspaceFlag
+    global window, toolbar, icon, toolbarMenuOpening, mLClickProcessed, toolbarUpdateLastFrameFlag, toolbarUpdateAsideFlag, toolbarUpdateWorkspaceFlag
     toolbarUpdateAsideFlag = False
     toolbarUpdateWorkspaceFlag = False
     width = 100*vw
@@ -276,8 +320,8 @@ def renderToolbar():
             toolbar.blit(icon[buttonName], buttonRect)
             if not hoverFlag and not toolbarMenuOpening == buttonName:
                 toolbar.blit(icon['buttonMask'], buttonRect)
-            elif hoverFlag and not mClickProcessed and mClick:
-                mClickProcessed = True
+            elif hoverFlag and not mLClickProcessed and mLClick:
+                mLClickProcessed = True
                 toolbarMenuOpening = buttonName
             elif toolbarMenuOpening == buttonName:
                 optionPadding = parseLength(theme['toolbar']['>']['option']['padding'])
@@ -290,7 +334,7 @@ def renderToolbar():
                     pg.draw.rect(toolbar, theme['toolbar']['>']['option']['#'+buttonName][':hover']['background-color'] if isHover(mx, my, optionRect) else theme['toolbar']['>']['option']['background-color'], optionRect)
                     if optionIndex > 0 : pg.draw.line(toolbar, theme['toolbar']['>']['option']['border-color'], [optionRect.left + optionPadding, optionRect.top], [optionRect.right - optionPadding, optionRect.top])
                     toolbar.blit(optionTextList[optionIndex], [optionRect.left + optionPadding, optionRect.top + optionPadding])
-                    if mClick and not mClickProcessed:
+                    if mLClick and not mLClickProcessed:
                         if buttonName == 'designButton':
                             if optionName == 'new design':
                                 newProject()
@@ -313,7 +357,7 @@ def renderToolbar():
                         elif buttonName == 'infoButton':
                             if optionName == 'about us': pass
 
-        if not hoverAnyFlag and mClick:
+        if not hoverAnyFlag and mLClick:
             toolbarMenuOpening = False
 
 aside = createSurface(0, 0)
@@ -321,13 +365,15 @@ asideUpdateLastFrameFlag = False
 layerListScrollY = 0
 dragScrollbarThumbFlag = False
 draggingLayer = False
+selectedLayer = False
+layerRenameFlag = False
 def renderAside():
-    global window, aside, asideUpdateLastFrameFlag, asideUpdateToolbarFlag, asideUpdateWorkspaceFlag, mClickProcessed
-    global layerListScrollY, dragScrollbarThumbFlag, draggingLayer
+    global window, aside, asideUpdateLastFrameFlag, asideUpdateToolbarFlag, asideUpdateWorkspaceFlag, mLClickProcessed, mRClickProcessed, mDBClickProcessed, keyboardInput
+    global layerListScrollY, dragScrollbarThumbFlag, draggingLayer, selectedLayer, layerRenameFlag
     asideUpdateToolbarFlag = False
     asideUpdateWorkspaceFlag = False
     asideRect = pg.Rect(100*vw - parseLength(theme['aside']['width']), parseLength(theme['toolbar']['height']), parseLength(theme['aside']['width']), 100*vh - parseLength(theme['toolbar']['height']))
-    asideUpdateFlag = toolbarUpdateAsideFlag or workspaceUpdateAsideFlag
+    asideUpdateFlag = toolbarUpdateAsideFlag or workspaceUpdateAsideFlag or layerRenameFlag
     if isHover(mx, my, asideRect):
         asideUpdateFlag = True
     if toolbar.get_size() != (100*vw, 100*vh):
@@ -366,6 +412,25 @@ def renderAside():
                 buttonText = renderText(buttonName, parseLength(theme['aside']['>']['layerButtonBar']['font-size']), theme['aside']['>']['layerButtonBar']['color'])
                 buttonTextSize = buttonText.get_size()
                 aside.blit(buttonText, [buttonRect.left + (buttonRect.width - buttonTextSize[0])/2, buttonRect.top + (buttonRect.height - buttonTextSize[1])/2])
+                if isHover(mx, my, buttonRect) and mLClick and (not mLClickProcessed):
+                    if buttonName == 'full' or buttonName == 'clip':
+                        insertIndex = len(project['pages'][currentPage])
+                        if selectedLayer and (selectedLayer in idList(project['pages'][currentPage])):
+                            insertIndex = idList(project['pages'][currentPage]).index(selectedLayer) + 1
+                        newLayer = {
+                            'id': generateId(), 
+                            'type': {'full': 'full', 'clip': 'clip'}[buttonName], 
+                            'name': 'new {layerType} layer'.format(layerType={'full': 'full', 'clip': 'clip'}[buttonName]), 
+                            'imagePath': False
+                        }
+                        project['pages'][currentPage].insert(insertIndex, newLayer)
+                        selectedLayer = newLayer['id']
+                        # layerRenameFlag = False
+                    elif buttonName == 'delete' and selectedLayer and (selectedLayer in idList(project['pages'][currentPage])):
+                        project['pages'][currentPage].pop(idList(project['pages'][currentPage]).index(selectedLayer))
+                        if draggingLayer == selectedLayer: draggingLayer = False
+                        selectedLayer = False
+                    mLClickProcessed = True
 
             # layer list
             layerListRect = pg.Rect(tinyViewRect.left, tinyViewRect.bottom + asidePadding*2, tinyViewWidth, asideRect.height - tinyViewHeight - layerButtonBarHeight - asidePadding*4)
@@ -383,31 +448,45 @@ def renderAside():
             scrollbarThumbRect = pg.Rect(scrollbarRect.left, scrollbarRect.top + (scrollbarRect.height - scrollbarThumbHeight)*(layerListScrollY/maxLayerListScrollY), scrollbarRect.width, scrollbarThumbHeight)
             if maxLayerListScrollY > 0:
                 pg.draw.rect(aside, theme['*']['scrollbar-color'][0], scrollbarThumbRect)
-                if isHover(mx, my, scrollbarThumbRect) and mClick and not mClickProcessed:
+                if isHover(mx, my, scrollbarThumbRect) and mLClick and not mLClickProcessed:
                     dragScrollbarThumbFlag = True
-                    mClickProcessed = True
-                elif mClick and mClickProcessed and dragScrollbarThumbFlag:
+                    mLClickProcessed = True
+                elif mLClick and mLClickProcessed and dragScrollbarThumbFlag:
                     layerListScrollY = (my - scrollbarRect.top) / scrollbarRect.height * maxLayerListScrollY
                     layerListScrollY = max(min(layerListScrollY, maxLayerListScrollY), 0)
-                elif not mClick:
+                elif not mLClick:
                     dragScrollbarThumbFlag = False
 
             startIndex = math.floor(layerListScrollY/layerHeight)
             endIndex = startIndex + math.ceil(layerListRect.height/layerHeight) + 1
+            if selectedLayer == False:
+                layerRenameFlag = False
             for [relativeLayerIndex, layer] in enumerate(project['pages'][currentPage][startIndex:endIndex]):
                 layerRectInLayer = pg.Rect(0, -(layerListScrollY%layerHeight) + layerHeight*relativeLayerIndex, layerListRect.width - scrollbarRect.width, layerHeight)
                 layerRectInWindow = pg.Rect(layerListRect.left, layerListRect.top - layerListScrollY%layerHeight + layerHeight*relativeLayerIndex, layerRectInLayer.width, layerRectInLayer.height)
-                pg.draw.rect(layerList, theme['aside']['>']['layerList']['>']['layer']['background-color'], layerRectInLayer)
-                if relativeLayerIndex > 0 : pg.draw.line(layerList, theme['aside']['>']['*']['border-color'], layerRectInLayer.topleft, layerRectInLayer.topright)
-                text = renderText(layer['name'], parseLength(theme['aside']['>']['layerList']['>']['layer']['font-size']), theme['aside']['>']['layerList']['>']['layer']['color'])
+                pg.draw.rect(layerList, theme['aside']['>']['layerList']['>']['layer'][':checked']['background-color'] if layer['id'] == selectedLayer else theme['aside']['>']['layerList']['>']['layer']['background-color'], layerRectInLayer)
+                if relativeLayerIndex > 0: pg.draw.line(layerList, theme['aside']['>']['*']['border-color'], layerRectInLayer.topleft, layerRectInLayer.topright)
+                if layer['id'] == selectedLayer and layerRenameFlag:
+                    layerPadding = parseLength(theme['aside']['>']['layerList']['>']['layer']['padding'])
+                    pg.draw.line(layerList, theme['aside']['>']['*']['border-color'], [layerRectInLayer.left + layerPadding, layerRectInLayer.bottom - layerPadding], [layerRectInLayer.right - layerPadding, layerRectInLayer.bottom - layerPadding])
+                text = renderText('[{layerType}] {layerName}'.format(layerType={'full': 'f', 'clip': 'c'}[layer['type']], layerName=layer['name']), parseLength(theme['aside']['>']['layerList']['>']['layer']['font-size']), theme['aside']['>']['layerList']['>']['layer']['color'])
                 layerList.blit(text, [layerRectInLayer.left, layerRectInLayer.top + (layerHeight - text.get_size()[1])/2])
 
-                if isHover(mx, my, layerRectInWindow) and mClick and not mClickProcessed:
-                    draggingLayer = layer
-                    mClickProcessed = True
-                elif mClick and mClickProcessed and draggingLayer == layer:
+                if isHover(mx, my, layerRectInWindow):
+                    if mLClick and not mLClickProcessed:
+                        draggingLayer = layer['id']
+                        mLClickProcessed = True
+                    elif mRClick and not mRClickProcessed:
+                        project['pages'][currentPage].pop(idList(project['pages'][currentPage]).index(layer['id']))
+                        if selectedLayer == layer['id']: selectedLayer = False
+                        if draggingLayer == layer['id']: draggingLayer = False
+                        mRClickProcessed = True
+                    elif mDBClick and not mDBClickProcessed:
+                        layerRenameFlag = True
+                        mDBClickProcessed = True
+                if mLClick and mLClickProcessed and draggingLayer == layer['id']:
                     targetRelativeLayerIndex = math.floor((my - layerListRect.top + (layerListScrollY%layerHeight) - layerHeight/2) / layerHeight + 0.5)
-                    currentIndex = project['pages'][currentPage].index(layer)
+                    currentIndex = idList(project['pages'][currentPage]).index(layer['id'])
                     targetIndex = max(min(currentIndex - relativeLayerIndex + targetRelativeLayerIndex, len(project['pages'][currentPage])-1), 0)
                     if targetIndex > currentIndex:
                         (project['pages'][currentPage][currentIndex : targetIndex-1])
@@ -415,14 +494,29 @@ def renderAside():
                     elif targetIndex < currentIndex:
                         project['pages'][currentPage][targetIndex+1 : currentIndex+1] = project['pages'][currentPage][targetIndex : currentIndex]
                     if targetIndex != currentIndex: project['pages'][currentPage][targetIndex] = layer
-                elif not mClick:
+                    else:
+                        # if selectedLayer != draggingLayer: layerRenameFlag = False
+                        selectedLayer = draggingLayer
+                if not mLClick:
                     draggingLayer = False
+                if layer['id'] == selectedLayer and layerRenameFlag:
+                    layer['name'] += keyboardInput
+                    keyboardInput = ''
+                    layer['name'] = parseInput(layer['name'])
+                    if '\n' in layer['name']:
+                        layer['name'] = layer['name'].split('\n')[0]
+                        layerRenameFlag = False
+
             aside.blit(layerList, layerListRect.topleft)
 
 workspace = createSurface(0, 0)
 workspaceUpdateLastFrameFlag = False
+workspaceTranslateX = 0
+workspaceTranslateY = 0
+workspaceScale = 1
 def renderWorkspace():
     global window, workspace, workspaceUpdateLastFrameFlag, workspaceUpdateToolbarFlag, workspaceUpdateAsideFlag
+    global workspaceTranslateX, workspaceTranslateY, workspaceScale
     workspaceUpdateToolbarFlag = False
     workspaceUpdateAsideFlag = False
     workspaceRect = pg.Rect(0, parseLength(theme['toolbar']['height']), 100*vw - parseLength(theme['aside']['width']), 100*vh - parseLength(theme['toolbar']['height']))
@@ -440,9 +534,14 @@ def renderWorkspace():
             warningText = renderText('Please create or open a project first!', parseLength(theme['workspace']['>']['warning']['font-size']), [255, 255, 255, 100])
             warningTextSize = warningText.get_size()
             workspace.blit(warningText, [workspaceRect.left + (workspaceRect.width - warningTextSize[0])/2, workspaceRect.top + (workspaceRect.height - warningTextSize[1])/2])
+        else:
+            workspaceTranslateX += mWheelX*2
+            workspaceTranslateY += mWheelY*2
+            for layer in project['pages'][currentPage]:
+                image = renderImage(project['settings']['accessDirectory'] + layer['imagePath'], project['settings']['proxiesImageQuality'])
+                workspace.blit(image, [workspaceTranslateX, workspaceTranslateY])
 
 editorState = 'loading'
-# editorState = 'edit'
 async def main():
     async def init():
         await loadTheme()
@@ -452,7 +551,8 @@ async def main():
         renderToolbar()
     
     async def renderLoop():
-        global vw, vh, mx, my, mClick, mClickProcessed, mWheelX, mWheelY
+        global vw, vh, mx, my, mLClick, mLClickProcessed, mMClick, mMClickProcessed, mRClick, mRClickProcessed, mDBClick, mDBClickProcessed, lastClickTime, lastClickX, lastClickY, mWheelX, mWheelY, keyboardInput
+        global layerRenameFlag
         global editorState, loadingProcess, totalTask
         global theme, project
         global window, toolbar, aside, workspace
@@ -497,6 +597,7 @@ async def main():
             
             # event listener
             [mWheelX, mWheelY] = [0, 0]
+            keyboardInput = ''
             for event in pg.event.get(): 
                 if event.type == pg.QUIT:
                     run = False
@@ -504,13 +605,53 @@ async def main():
                     key = event.key
                     if key == pg.K_q and pg.key.get_mods() & pg.KMOD_CTRL:
                         run = False
+                    if not(pg.key.get_mods() & pg.KMOD_CTRL):
+                        keyName = pg.key.name(event.key)
+                        if pg.key.get_mods() & pg.KMOD_SHIFT:
+                            if keyName in '0123456789[]\\-=;\',./`':
+                                keyboardInput += {'0': ')', '1': '!', '2': '@', '3': '#', '4': '$', '5': '%', '6': '^', '7': '&', '8': '*', '9': '(', '[': '{', ']': '}', '\\': '|', '-': '_', '=': '+', ';': ':', '\'': '"', ',': '<', '.': '>', '/': '?', '`': '~'}[keyName]
+                            elif keyName in 'abcdefghijklmnopqrstuvwxyz':
+                                keyboardInput += keyName.upper()
+                        elif keyName in '0123456789[]\\-=;\',./`abcdefghijklmnopqrstuvwxyz':
+                            keyboardInput += keyName
+                        elif keyName == 'backspace':
+                            keyboardInput += '\b'
+                        elif keyName == 'return' or keyName == 'enter':
+                            keyboardInput += '\n'
+                        elif keyName == 'escape':
+                            layerRenameFlag = False
+                        else: print(keyName)
                 elif event.type == pg.MOUSEBUTTONDOWN:
-                    mClick = True
-                    mClickProcessed = False
+                    if event.button == 1:
+                        layerRenameFlag = False
+                        mLClick = True
+                        mLClickProcessed = False
+                        currentTime = time.time()
+                        if currentTime - lastClickTime < 0.3 and mx == lastClickX and my == lastClickY:
+                            mDBClick = True
+                            mDBClickProcessed = False
+                        else:
+                            mDBClick = False
+                        lastClickTime = currentTime
+                        [lastClickX, lastClickY] = [mx, my]
+                    elif event.button == 2:
+                        layerRenameFlag = False
+                        mMClick = True
+                        mMClickProcessed = False
+                    elif event.button == 3:
+                        layerRenameFlag = False
+                        mRClick = True
+                        mRClickProcessed = False
                 elif event.type == pg.MOUSEBUTTONUP:
-                    mClick = False
+                    if event.button == 1:
+                        mLClick = False
+                    elif event.button == 2:
+                        mMClick = False
+                    elif event.button == 3:
+                        mRClick = False
                 elif event.type == pg.MOUSEWHEEL:
                     [mWheelX, mWheelY] = [event.x, event.y]
+                    print(event.x, event.y)
 
             await asyncio.sleep(0.001)
     
@@ -519,4 +660,3 @@ async def main():
     await asyncio.gather(initTask, renderTask)
 
 asyncio.run(main())
-# main()

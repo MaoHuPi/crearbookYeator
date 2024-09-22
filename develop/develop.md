@@ -20,13 +20,16 @@
 	1. feat: layer list scroll bar
 	2. feat: layer sort (按住後拖曳，只在垂直方向步進式交換(改 index))
 
+* 2024/09/22
+	1. feat: layer focus (single click a layer)
+	2. feat: layer button 功能 (new full layer, new clip layer, delete selected layer)
+	3. feat: layer id (用以辨識實體不同但名稱相同的 layer)
+	4. feat: layer rename (double click a layer)
+	5. feat: layer icon (full or clip，改用 \[f\] 和 \[c\] 之前綴代替)
+
 ## 待辦
 
 - [ ] 直長型視窗的布局(theme 新增不同部局並支援各 component 的 top/bottom、left/right)
-- [ ] layer button 功能
-- [ ] layer rename (double click a layer)
-- [ ] layer focus (single click a layer)
-- [ ] layer icon (full or clip)
 - [ ] tiny view display
 
 - [ ] workspace page display

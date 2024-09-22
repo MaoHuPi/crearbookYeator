@@ -65,10 +65,14 @@
 				"background-color": [40, 40, 40], 
 				">": {
 					"layer": {
+						"padding": "8px", 
 						"height": "40px", 
 						"color": [255, 255, 255], 
 						"font-size": "25px", 
-						"background-color": [20, 20, 20]
+						"background-color": [20, 20, 20], 
+						":checked": {
+							"background-color": [80, 80, 80]
+						}
 					}
 				}
 			}, 
