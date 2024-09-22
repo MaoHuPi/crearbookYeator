@@ -29,6 +29,7 @@
 	6. feat: full layer display (on workspace) 
 	7. feat: workspace move (wheel)
 	8. feat: workspace scale
+	9. perf: 重復樣式圖層渲染之快取
 
 ## 待辦
 
@@ -38,6 +39,8 @@
 - [ ] workspace move (drag)
 - [ ] clip layer display (on workspace)
 - [ ] clipping layer control points and edit method
+- [ ] layer hiding
+- [ ] layer proxy switch option
 
 - [ ] file read/write
 

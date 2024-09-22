@@ -68,83 +68,83 @@ def newProject():
         'settings': {
             'pageSize': [5882, 4193], 
             'accessDirectory': './oriAccess/20240911_個人照/', 
-            'proxiesImageQuality': 10, 
+            'proxiesImageQuality': 15, 
             'pageShow': 'all'
         }, 
         'pages': [
             [
-                # {
-                #     'id': generateId(), 
-                #     'type': 'full', 
-                #     'name': 'front1', 
-                #     'imagePath': 'p_29_1.JPG'
-                # }, 
-                # {
-                #     'id': generateId(), 
-                #     'type': 'full', 
-                #     'name': 'front2', 
-                #     'imagePath': 'p_29_1.JPG'
-                # }, 
-                # {
-                #     'id': generateId(), 
-                #     'type': 'full', 
-                #     'name': 'front3', 
-                #     'imagePath': 'p_29_1.JPG'
-                # }, 
-                # {
-                #     'id': generateId(), 
-                #     'type': 'full', 
-                #     'name': 'front4', 
-                #     'imagePath': 'p_29_1.JPG'
-                # }, 
-                # {
-                #     'id': generateId(), 
-                #     'type': 'full', 
-                #     'name': 'front5', 
-                #     'imagePath': 'p_29_1.JPG'
-                # }, 
-                # {
-                #     'id': generateId(), 
-                #     'type': 'full', 
-                #     'name': 'front6', 
-                #     'imagePath': 'p_29_1.JPG'
-                # }, 
-                # {
-                #     'id': generateId(), 
-                #     'type': 'full', 
-                #     'name': 'front7', 
-                #     'imagePath': 'p_29_1.JPG'
-                # }, 
-                # {
-                #     'id': generateId(), 
-                #     'type': 'full', 
-                #     'name': 'front8', 
-                #     'imagePath': 'p_29_1.JPG'
-                # }, 
-                # {
-                #     'id': generateId(), 
-                #     'type': 'full', 
-                #     'name': 'front9', 
-                #     'imagePath': 'p_29_1.JPG'
-                # }, 
-                # {
-                #     'id': generateId(), 
-                #     'type': 'full', 
-                #     'name': 'front10', 
-                #     'imagePath': 'p_29_1.JPG'
-                # }, 
-                # {
-                #     'id': generateId(), 
-                #     'type': 'full', 
-                #     'name': 'front11', 
-                #     'imagePath': 'p_29_1.JPG'
-                # }, 
-                # {
-                #     'id': generateId(), 
-                #     'type': 'full', 
-                #     'name': 'front12', 
-                #     'imagePath': 'p_29_1.JPG'
-                # }, 
+                {
+                    'id': generateId(), 
+                    'type': 'full', 
+                    'name': 'front1', 
+                    'imagePath': 'p_29_1.JPG'
+                }, 
+                {
+                    'id': generateId(), 
+                    'type': 'full', 
+                    'name': 'front2', 
+                    'imagePath': 'p_29_1.JPG'
+                }, 
+                {
+                    'id': generateId(), 
+                    'type': 'full', 
+                    'name': 'front3', 
+                    'imagePath': 'p_29_1.JPG'
+                }, 
+                {
+                    'id': generateId(), 
+                    'type': 'full', 
+                    'name': 'front4', 
+                    'imagePath': 'p_29_1.JPG'
+                }, 
+                {
+                    'id': generateId(), 
+                    'type': 'full', 
+                    'name': 'front5', 
+                    'imagePath': 'p_29_1.JPG'
+                }, 
+                {
+                    'id': generateId(), 
+                    'type': 'full', 
+                    'name': 'front6', 
+                    'imagePath': 'p_29_1.JPG'
+                }, 
+                {
+                    'id': generateId(), 
+                    'type': 'full', 
+                    'name': 'front7', 
+                    'imagePath': 'p_29_1.JPG'
+                }, 
+                {
+                    'id': generateId(), 
+                    'type': 'full', 
+                    'name': 'front8', 
+                    'imagePath': 'p_29_1.JPG'
+                }, 
+                {
+                    'id': generateId(), 
+                    'type': 'full', 
+                    'name': 'front9', 
+                    'imagePath': 'p_29_1.JPG'
+                }, 
+                {
+                    'id': generateId(), 
+                    'type': 'full', 
+                    'name': 'front10', 
+                    'imagePath': 'p_29_1.JPG'
+                }, 
+                {
+                    'id': generateId(), 
+                    'type': 'full', 
+                    'name': 'front11', 
+                    'imagePath': 'p_29_1.JPG'
+                }, 
+                {
+                    'id': generateId(), 
+                    'type': 'full', 
+                    'name': 'front12', 
+                    'imagePath': 'p_29_1.JPG'
+                }, 
                 {
                     'id': generateId(), 
                     'type': 'full', 
@@ -178,41 +178,62 @@ def renderText(content, size, color):
 imageCache = {}
 def getImage(path, quality):
     path = str(path)
-    id = path + '_q' + str(quality)
-    if id in imageCache:
-        return imageCache[id]
+    _id = path + '_q' + str(quality)
+    if _id in imageCache:
+        return imageCache[_id]
     else:
         image = pg.image.load(path)
         image = pg.transform.scale_by(image, quality/100)
-        imageCache[id] = image
+        imageCache[_id] = image
         return image
+renderedImageCache = {}
+def clearUnusedImage():
+    keys = list(renderedImageCache.keys())
+    for _id in keys:
+        if currentTime - renderedImageCache[_id]['time'] > 1:
+            del renderedImageCache[_id]
 def renderImage(image:pg.Surface, imageRect:pg.Rect, canvasRect:pg.Rect):
-    if imageRect.width*imageRect.height > canvasRect.width*canvasRect.height:
-        relativeLeft = canvasRect.left-imageRect.left
-        relativeTop = canvasRect.top-imageRect.top
-        relativeWidth = canvasRect.width
-        relativeHeight = canvasRect.height
-        horizontalScale = 1/imageRect.width*image.get_width()
-        verticalScale = 1/imageRect.height*image.get_height()
-        relativeLeft *= horizontalScale; relativeTop *= verticalScale
-        relativeWidth *= horizontalScale; relativeHeight *= verticalScale
-
-        cropLeft = math.floor(relativeLeft)
-        cropTop = math.floor(relativeTop)
-        cropWidth = round(relativeWidth)
-        cropHeight = round(relativeHeight)
-        croppedImage = pg.Surface([cropWidth, cropHeight]).convert_alpha()
-        croppedImage.fill([0, 0, 0, 0])
-        croppedImage.blit(image, [0, 0], [cropLeft, cropTop, cropWidth, cropHeight])
-        croppedImage = pg.transform.scale(croppedImage, [canvasRect.width, canvasRect.height])
-
-        return croppedImage
+    _id = ','.join([str(n) for n in [
+        id(image), 
+        imageRect.left, imageRect.top, imageRect.width, imageRect.height, 
+        canvasRect.left, canvasRect.top, canvasRect.width, canvasRect.height
+    ]])
+    if _id in renderedImageCache:
+        renderedImageCache[_id]['time'] = currentTime
+        return renderedImageCache[_id]['image']
     else:
-        image = pg.transform.scale(image, [imageRect.width, imageRect.height])
-        croppedImage = pg.Surface([canvasRect.width, canvasRect.height]).convert_alpha()
-        croppedImage.fill([0, 0, 0, 0])
-        croppedImage.blit(image, [imageRect.left - canvasRect.left, imageRect.top - canvasRect.top])
-        return croppedImage
+        returnImage = False
+        if imageRect.width*imageRect.height > canvasRect.width*canvasRect.height:
+            relativeLeft = canvasRect.left-imageRect.left
+            relativeTop = canvasRect.top-imageRect.top
+            relativeWidth = canvasRect.width
+            relativeHeight = canvasRect.height
+            horizontalScale = 1/imageRect.width*image.get_width()
+            verticalScale = 1/imageRect.height*image.get_height()
+            relativeLeft *= horizontalScale; relativeTop *= verticalScale
+            relativeWidth *= horizontalScale; relativeHeight *= verticalScale
+
+            cropLeft = math.floor(relativeLeft)
+            cropTop = math.floor(relativeTop)
+            cropWidth = round(relativeWidth)
+            cropHeight = round(relativeHeight)
+            croppedImage = pg.Surface([cropWidth, cropHeight]).convert_alpha()
+            croppedImage.fill([0, 0, 0, 0])
+            croppedImage.blit(image, [0, 0], [cropLeft, cropTop, cropWidth, cropHeight])
+            croppedImage = pg.transform.scale(croppedImage, [canvasRect.width, canvasRect.height])
+
+            returnImage = croppedImage
+        else:
+            image = pg.transform.scale(image, [imageRect.width, imageRect.height])
+            croppedImage = pg.Surface([canvasRect.width, canvasRect.height]).convert_alpha()
+            croppedImage.fill([0, 0, 0, 0])
+            croppedImage.blit(image, [imageRect.left - canvasRect.left, imageRect.top - canvasRect.top])
+            returnImage = croppedImage
+        renderedImageCache[_id] = {
+            'image': returnImage, 
+            'time': currentTime
+        }
+        return returnImage
 
 
 def isHover(x, y, rect:pg.Rect):
@@ -590,6 +611,7 @@ def renderWorkspace():
                 workspace.blit(image, [workspaceRect.left, workspaceRect.top])
 
 deltaTime = 0
+currentTime = 0
 editorState = 'loading'
 async def main():
     async def init():
@@ -605,7 +627,7 @@ async def main():
         global editorState, loadingProcess, totalTask
         global theme, project
         global window, toolbar, aside, workspace
-        global deltaTime
+        global deltaTime, currentTime
         
         run = True
         lastFrameTime = time.time()
@@ -641,6 +663,7 @@ async def main():
                 renderWorkspace()
                 renderAside()
                 renderToolbar()
+                clearUnusedImage()
                 updateAllComponentFlag = False
                 window.fill(theme['window']['background-color'])
                 window.blit(workspace, pg.Rect(0, 0, 100*vw, 100*vh))
